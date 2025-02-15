@@ -37,6 +37,7 @@ export const Header = () => {
     setIsLoggedIn(false)
     setShowLogoutModal(false)
     navigate('/')
+    window.location.reload(); // Reload the page after logging out
   }
 
   const handleClickProfile = () => {
@@ -60,12 +61,12 @@ export const Header = () => {
         <div className="flex items-center gap-4">
           {!isLoggedIn ? (
             <>
-              <button
+              {/* <button
                 onClick={() => openModal('register')}
                 className="px-4 py-1 text-gray-600 hover:text-gray-900 rounded-lg"
               >
                 Đăng ký
-              </button>
+              </button> */}
               <button
                 onClick={() => openModal('login')}
                 className="px-4 py-1 bg-orange-500 text-white rounded-3xl hover:bg-orange-600"

@@ -5,6 +5,7 @@ import { CoursesApi } from '../../api/CoursesApi'
 import { AuthModal } from '../auth/AuthModal'
 import { useState, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { Spinner } from '../common/Spinner'; // Import Spinner component
 
 export function CourseHeader({ course, lesson }) {
   const navigate = useNavigate()
@@ -12,6 +13,7 @@ export function CourseHeader({ course, lesson }) {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authMode, setAuthMode] = useState('login')
   const [checkregister,setCheckRegister] = useState(false)
+  const [loading, setLoading] = useState(true) // Add loading state
   const params = useParams()
 
   useEffect(() => {
@@ -26,9 +28,15 @@ export function CourseHeader({ course, lesson }) {
     //Check User Register Course
     const checkUserRegisterCourse = async() => {
       const storedUser = JSON.parse(localStorage.getItem('user'));
+      if (!storedUser) {
+        setCheckRegister(false);
+        setLoading(false);
+        return;
+      }
       const course_id = params.courseId
       const check = await CoursesApi.checkUserRegisterCourse({ user_id: storedUser.info.id, course_id: course_id })
       setCheckRegister(check.is_registered)
+      setLoading(false) // Set loading to false after check is done
     }
     checkUserRegisterCourse()
   }, []);
@@ -46,6 +54,7 @@ export function CourseHeader({ course, lesson }) {
     try {
       await CoursesApi.registerCourse({ user_id: storedUser.info.id, course_id: course.id });
       toast.success('Registration successful!');
+      window.location.reload(); // Reload the page after successful registration
       // Navigate to the course learning page after successful registration
       // navigate(`/learn/${course.slug}/${lesson[0].id}`);
     } catch (error) {
@@ -80,7 +89,9 @@ export function CourseHeader({ course, lesson }) {
                 {/* <span>{course.level.title}</span> */}
               </div>
             </div>
-            {checkregister ? (
+            {loading ? (
+              <Spinner /> // Show spinner while loading
+            ) : checkregister ? (
               <button onClick={handleGoToCourse} className="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition-colors">
                 VÀO HỌC
               </button>

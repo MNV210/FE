@@ -3,12 +3,14 @@ import { ChevronDown, ChevronUp, Play, Lock } from 'lucide-react'
 import { CoursesApi } from '../../api/CoursesApi'
 import { useParams } from 'react-router-dom'
 import { CourseHeader } from './CourseHeader'
+import { Spinner } from '../../components/Spinner' // Import Spinner component
 
 export function CourseCurriculum() {
   const { courseId } = useParams()
   const [totalLessons, setTotalLessons] = useState(0)
   const [lessons, setLessons] = useState([])
   const [course,setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -21,11 +23,17 @@ export function CourseCurriculum() {
         setLessons(data.data)
       } catch (error) {
         console.error('Error fetching course data:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
     fetchCourseData()
   }, [courseId])
+
+  if (loading) {
+    return <Spinner /> // Use Spinner component
+  }
 
   return (
     <div className="max-w-8xl mx-auto px-4 py-8">
@@ -48,7 +56,7 @@ export function CourseCurriculum() {
               <div className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-100">
                 <div className="flex items-center gap-3">
                   <span className="font-medium"> {lesson.lesson_name}</span>
-                  <span className="text-gray-500">{Math.floor(lesson.duration / 60)} phút</span>
+                  {/* <span className="text-gray-500">{Math.floor(lesson.duration / 60)} phút</span> */}
                 </div>
               </div>
             </div>

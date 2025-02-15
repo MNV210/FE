@@ -14,8 +14,9 @@ export default function CourseList() {
       setLoading(true);
       const courses = await CoursesApi.getCourse();
       setProCourses({ data: courses.data.filter(course => course.type === 'pro') });
-      setFreeCourses({ data: courses.data.filter(course => course.type === 'free') });
+      setFreeCourses({ data: courses.data});
       setLoading(false);
+      console.log(courses);
     };
     fetchCourses();
   }, []);

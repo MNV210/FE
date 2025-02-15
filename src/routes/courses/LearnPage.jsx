@@ -55,6 +55,35 @@ export default function LearnPage() {
     }
   };
 
+  // Xử lý cập nhật tiến độ cho file sau 2 phút
+  useEffect(() => {
+    if (lessonInformation?.type === 'file') {
+      const timer = setTimeout(async () => {
+        try {
+          const checkLessonCompleted = await ProgressApi.checkLessonCompleted(
+            storedUser.info.id,
+            lessonInformation.course_id,
+            lessonId
+          );
+          
+          if (checkLessonCompleted.length === 0) {
+            await ProgressApi.updateLessonProgress({
+              lesson_id: lessonId,
+              course_id: lessonInformation.course_id,
+              user_id: storedUser.info.id,
+              progress: "completed"
+            });
+            fetchLessonData(); // Cập nhật lại danh sách hoàn thành
+          }
+        } catch (error) {
+          console.error("Lỗi khi cập nhật tiến độ file:", error);
+        }
+      }, 30000); // 2 phút
+
+      return () => clearTimeout(timer);
+    }
+  }, [lessonInformation, lessonId, storedUser.info.id]);
+
   // Kiểm tra điều kiện mở khóa video
   const canPlayVideo = (checkLessonId) => {
     // Nếu đã hoàn thành rồi thì được xem
@@ -148,13 +177,34 @@ export default function LearnPage() {
         {/* Nội dung chính */}
         <div className={`flex-1 flex flex-col ${showSidebar ? "mr-[400px]" : ""}`}>
           <div className="w-full bg-black aspect-video">
-            <video
-              ref={videoRef}
-              src={lessonInformation.video_url}
-              controls
-              className="w-full h-full"
-              onTimeUpdate={handleVideoProgress}
-            />
+            {lessonInformation.type === 'video' ? (
+              <video
+                ref={videoRef}
+                src={lessonInformation.video_url}
+                controls
+                className="w-full h-full"
+                onTimeUpdate={handleVideoProgress}
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+                <embed
+                  src={lessonInformation.video_url}
+                  className="w-full h-full"
+                  type={
+                    lessonInformation.video_url?.endsWith('.pdf') 
+                      ? 'application/pdf'
+                      : 'text/plain'
+                  } />
+                <a
+                  href={lessonInformation.video_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white bg-blue-500 px-4 py-2 rounded"
+                >
+                  Tải xuống tài liệu
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Thông tin bài học */}
