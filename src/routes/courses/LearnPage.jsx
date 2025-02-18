@@ -7,11 +7,17 @@ import {
   Lock 
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Tabs } from 'antd'; // Import Tabs from antd
 
 // APIs
 import { CoursesApi } from "../../api/CoursesApi";
 import { LessonApi } from "../../api/LessonApi";
 import { ProgressApi } from "../../api/ProgressApi";
+import AIChat from "./AIChat";
+import { MessageCircle } from 'lucide-react';
+
+
+const { TabPane } = Tabs; // Destructure TabPane from Tabs
 
 export default function LearnPage() {
   // State
@@ -195,14 +201,14 @@ export default function LearnPage() {
                       ? 'application/pdf'
                       : 'text/plain'
                   } />
-                <a
+                {/* <a
                   href={lessonInformation.video_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white bg-blue-500 px-4 py-2 rounded"
                 >
                   Tải xuống tài liệu
-                </a>
+                </a> */}
               </div>
             )}
           </div>
@@ -219,41 +225,48 @@ export default function LearnPage() {
               showSidebar ? "translate-x-0" : "translate-x-full"
             }`}
           >
-            <div className="h-full flex flex-col">
-              <div className="p-4 border-b">
-                <h3 className="text-xl font-bold">Nội dung khóa học</h3>
-              </div>
-
-              <div className="flex-1 overflow-y-auto">
-                {listLesson.map((lesson) => {
-                  const isActive = lesson.id == lessonId;
-                  const canPlay = canPlayVideo(lesson.id);
-                  
-                  return (
-                    <button
-                      key={lesson.id}
-                      onClick={() => handleStepClick(lesson.id)}
-                      className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 
-                        ${!canPlay ? 'opacity-50 cursor-not-allowed' : ''} 
-                        ${isActive ? 'bg-orange-50' : ''}`}
-                      disabled={!canPlay}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center`}>
-                        {canPlay ? (
-                          <Play className="w-4 h-4" />
-                        ) : (
-                          <Lock className="w-4 h-4 text-gray-400" />
-                        )}
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium line-clamp-2">
-                          {lesson.lesson_name}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="h-full flex flex-col mx-4">
+              <Tabs defaultActiveKey="1" >
+                <TabPane tab={<h3> Nội dung khóa học</h3>} key="1">
+                  <div className="flex-1 overflow-y-auto">
+                    {listLesson.map((lesson) => {
+                      const isActive = lesson.id == lessonId;
+                      const canPlay = canPlayVideo(lesson.id);
+                      
+                      return (
+                        <button
+                          key={lesson.id}
+                          onClick={() => handleStepClick(lesson.id)}
+                          className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 
+                            ${!canPlay ? 'opacity-50 cursor-not-allowed' : ''} 
+                            ${isActive ? 'bg-orange-50' : ''}`}
+                          disabled={!canPlay}
+                        >
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center`}>
+                            {canPlay ? (
+                              <Play className="w-4 h-4" />
+                            ) : (
+                              <Lock className="w-4 h-4 text-gray-400" />
+                            )}
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium line-clamp-2">
+                              {lesson.lesson_name}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </TabPane>
+                <TabPane tab={<div className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-blue-600 mr-2" />
+                    <h3 className="text-lg font-semibold text-gray-800">Chat Room</h3>
+                    </div>} 
+                  key="2">
+                    <AIChat />
+                </TabPane>
+              </Tabs>
             </div>
           </div>
         </div>
