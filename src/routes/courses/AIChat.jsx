@@ -35,7 +35,22 @@ const AIChat = () => {
       });
 
       // Call AI API to get the response
-      const aiResponse = await axios.post('http://3.239.10.176/chat', { question });
+      const aiResponse = await axios.post('http://3.238.200.66/chat', 
+          { question },
+          {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            timeout: 60000000,
+          },
+          ).then((response) => {
+              return response.data;
+          }).catch((error) => { 
+              console.error('Error fetching AI response:', error);
+              // return 'Xin lỗi, tôi không hiểu câu hỏi của bạn.';
+          }
+      );
 
       // Create AI response
       await QuestionAi.createQuestionAI({
