@@ -3,10 +3,12 @@ import axios from 'axios';
 import { MessageCircle } from 'lucide-react';
 import { QuestionAi } from '../../api/QuestionAI';
 import { useParams } from 'react-router-dom';
+import { Button } from 'antd'; // Import Button from Ant Design
 
 const AIChat = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const params = useParams();
   const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -17,53 +19,45 @@ const AIChat = () => {
 
   const getAllMessages = async () => {
     try {
-      const response = await QuestionAi.getQuestionByUserAndLesson({ user_id: storedUser.info.id, lesson_id: params.lessonId });
-      setMessages(Array.isArray(response) ? response : []); // Ensure response.data is an array
+      const response = await QuestionAi.getQuestionByUserAndLesson(
+        { user_id: storedUser.info.id,
+          lesson_id: params.lessonId 
+        });
+      setMessages(Array.isArray(response) ? response : []); 
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
   };
 
-  const createMessage = async (question) => {
+  const createMessage = async (question, type) => {
     try {
       // Create user question
       await QuestionAi.createQuestionAI({
         user_id: storedUser.info.id,
         lesson_id: params.lessonId,
         question: question,
-        type: 'user'
+        type: type
       });
-
-      // Call AI API to get the response
-      const aiResponse = await axios.post('http://3.238.200.66/chat', 
-          { question },
-          {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            timeout: 60000000,
-          },
-          ).then((response) => {
-              return response.data;
-          }).catch((error) => { 
-              console.error('Error fetching AI response:', error);
-              // return 'Xin lỗi, tôi không hiểu câu hỏi của bạn.';
-          }
-      );
-
-      // Create AI response
-      await QuestionAi.createQuestionAI({
-        user_id: storedUser.info.id,
-        lesson_id: params.lessonId,
-        question: aiResponse,
-        type: 'ai'
-      });
-
-      // Fetch all messages again
       await getAllMessages();
     } catch (error) {
       console.error('Error creating message:', error);
+    }
+  };
+
+  const callApiAi = async (question) => {
+    try {
+      setLoading(true);
+      // Call AI API to get the response
+      const response = await axios.post('http://localhost:8000/api/test_ai', 
+            { question },
+            { timeout: 60000000 }
+      );
+      await createMessage(response.data.answer, 'ai');
+      return response.data.answer;
+    } catch (error) {
+      console.error('Error fetching AI response:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,7 +75,8 @@ const AIChat = () => {
     setMessages([...messages, userMessage]);
     setMessage('');
 
-    await createMessage(message);
+    await createMessage(message, 'user');
+    await callApiAi(message);
   };
 
   useEffect(() => {
@@ -130,20 +125,24 @@ const AIChat = () => {
       </div>
 
       {/* Message Input */}
-      <form onSubmit={sendMessage} className="flex gap-2">
+      <form onSubmit={sendMessage} className="flex items-center gap-2">
         <input
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+          className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 w-full"
           placeholder="Nhập tin nhắn của bạn..."
+          disabled={loading}
         />
-        <button
-          type="submit"
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={loading}
+          className="px-6 py-3 rounded-lg"
+          disabled={loading}
         >
           Gửi
-        </button>
+        </Button>
       </form>
     </div>
   );
